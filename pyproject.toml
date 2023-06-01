@@ -1,5 +1,5 @@
 [tool.djlint]
-blank_line_after_tag = "endblock, load"
+blank_line_after_tag = "endblock, load, extends"
 blank_line_before_tag = "block"
 close_void_tags = true
 format_attribute_template_tags = true
