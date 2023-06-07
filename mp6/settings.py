@@ -151,6 +151,19 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# For uploaded media files
+# https://docs.djangoproject.com/en/3.2/howto/static-files/#serving-uploaded-files-in-development
+
+# Filesystem path for user-uploaded files
+# https://docs.djangoproject.com/en/3.2/ref/settings/#media-root
+MEDIA_ROOT = BASE_DIR / "media"
+
+# URL that handles media served from MEDIA_ROOT; configure base URLconf
+# https://docs.djangoproject.com/en/3.2/ref/settings/#media-url
+MEDIA_URL = "/media/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
