@@ -27,13 +27,16 @@
             <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3">
               <div class="card h-100 border-0">
                 {% if product.image %}
-                  <a href="">
+                  {% comment %} Link to the detail page by the pk of the loop index {% endcomment %}
+                  {% comment %} This is the auto-created id field {% endcomment %}
+                  {% comment %} https://docs.djangoproject.com/en/3.2/topics/db/models/#automatic-primary-key-fields {% endcomment %}
+                  <a href="{% url "product_detail" product.pk %}">
                     <img class="card-img-top img-fluid"
                          src="{{ product.image.url }}"
                          alt="{{ product.name }}" />
                   </a>
                 {% else %}
-                  <a href="">
+                  <a href="{% url "product_detail" product.pk %}">
                     <img class="card-img-top img-fluid"
                          src="{{ MEDIA_URL }}noimage.png"
                          alt="{{ product.name }}" />
