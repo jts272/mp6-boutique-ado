@@ -15,6 +15,10 @@ def all_products(request):
     query = None
     # Give `None` value to category for context dict if not used
     categories = None
+    # Default values for sorting and direction
+    # i.e., initialize for instances where no sorting request exists
+    sort = None
+    direction = None
 
     # Access URL parameters from form get
     if request.GET:
@@ -58,11 +62,40 @@ def all_products(request):
             # Also get the selected categories to show in the template
             categories = Category.objects.filter(name__in=categories)
 
+        # Handle sort queries found in the URL
+        if "sort" in request.GET:
+            sortkey = request.GET["sort"]
+            # Get sort from `sortkey` from default `None`
+            sort = sortkey
+            # Annotate all products with new field for case insensitivity
+            # If the search term is equal to `name` on the model
+            if sortkey == "name":
+                # Set it to the field to be created by annotation
+                sortkey = "lower_name"
+                # Perform annotation, i.e. make new field
+                # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#annotate
+                # https://youtu.be/zKf_KWr1YpI?t=137
+                products = products.annotate(lower_name=Lower("name"))
+
+            if "direction" in request.GET:
+                direction = request.GET["direction"]
+                if direction == "desc":
+                    # Use `-` to reverse sort direction
+                    sortkey = f"-{sortkey}"
+
+            # Return processed queryset
+            products = products.order_by(sortkey)
+
+    # Return sorting methodology for use in the template
+    # Returns `None_None` when no sorting used
+    current_sorting = f"{sort}_{direction}"
+
     # The `query` must be provided to the context
     context = {
         "products": products,
         "search_term": query,
         "current_categories": categories,
+        "current_sorting": current_sorting,
     }
 
     return render(request, "products/products.html", context)
