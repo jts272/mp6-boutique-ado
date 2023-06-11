@@ -113,25 +113,26 @@
               </div>
             </li>
             <li class="list-inline-item">
-              <a href=""
+              <a href="{% url "view_bag" %}"
                  class="{% if grand_total %}
                           text-info font-weight-bold
                         {% else %}
                           text-black
                         {% endif %}
-                        nav-link"></a>
-              <div class="text-center">
-                <div>
-                  <i class="fas fa-shopping-bag fa-lg"></i>
+                        nav-link">
+                <div class="text-center">
+                  <div>
+                    <i class="fas fa-shopping-bag fa-lg"></i>
+                  </div>
+                  <p class="my-0">
+                    {% if grand_total %}
+                      ${{ grand_total|floatformat:2 }}
+                    {% else %}
+                      $0.00
+                    {% endif %}
+                  </p>
                 </div>
-                <p class="my-0">
-                  {% if grand_total %}
-                    ${{ grand_total|floatformat:2 }}
-                  {% else %}
-                    $0.00
-                  {% endif %}
-                </p>
-              </div>
+              </a>
             </li>
           </ul>
         </div>
@@ -147,8 +148,10 @@
                   aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
+
           {% include 'includes/mobile_top_header.html' %}
           {% include 'includes/main_nav.html' %}
+
         </nav>
       </div>
       <div id="delivery-banner" class="row text-center">
