@@ -76,6 +76,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Custom context processor for shopping bag
+                "bag.contexts.bag_contents",
             ],
         },
     },
@@ -170,3 +172,8 @@ MEDIA_URL = "/media/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CUSTOM BUSINESS LOGIC VARS
+
+FREE_DELIVERY_THRESHOLD = 50
+STANDARD_DELIVERY_PERCENTAGE = 10
