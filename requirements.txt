@@ -18,6 +18,7 @@ jsbeautifier==1.14.7
 json5==0.9.14
 oauthlib==3.2.2
 pathspec==0.11.1
+Pillow==9.5.0
 pycparser==2.21
 PyJWT==2.7.0
 python3-openid==3.2.0

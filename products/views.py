@@ -77,6 +77,10 @@ def all_products(request):
                 # https://youtu.be/zKf_KWr1YpI?t=137
                 products = products.annotate(lower_name=Lower("name"))
 
+            # Drill down to sort by name, not id
+            if sortkey == "category":
+                sortkey == "category__name"
+
             if "direction" in request.GET:
                 direction = request.GET["direction"]
                 if direction == "desc":
