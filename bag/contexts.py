@@ -18,22 +18,40 @@ def bag_contents(request):
 
     # Iterate through k:v items in the shopping bag to display on site
     # This is the session bag
-    for item_id, quantity in bag.items():
-        # Get the product first for calculations and information
-        product = get_object_or_404(Product, pk=item_id)
-        # Total is the quantity of each product's price
-        total += product.price * quantity
-        # Increment the product count by the quantity
-        product_count += quantity
-        # Add dict to list of bag items for access in templates
-        # This is like a context dict for the contents of the bag
-        bag_items.append(
-            {
-                "item_id": item_id,
-                "quantity": quantity,
-                "product": product,
-            }
-        )
+    for item_id, item_data in bag.items():
+        # REFACTOR: `quantity` renamed to `item_data` as it may be dict
+        # If it just contains the quantity number:
+        if isinstance(item_data, int):
+            # Get the product first for calculations and information
+            product = get_object_or_404(Product, pk=item_id)
+            # Total is the quantity of each product's price
+            total += product.price * item_data
+            # Increment the product count by the quantity
+            product_count += item_data
+            # Add dict to list of bag items for access in templates
+            # This is like a context dict for the contents of the bag
+            bag_items.append(
+                {
+                    "item_id": item_id,
+                    "quantity": item_data,
+                    "product": product,
+                }
+            )
+        # Otherwise loop through inner dict and increment accordingly
+        else:
+            product = get_object_or_404(Product, pk=item_id)
+
+            for size, quantity in item_data["items_by_size"].items():
+                total += quantity * product.price
+                product_count += quantity
+                bag_items.append(
+                    {
+                        "item_id": item_id,
+                        "quantity": item_data,
+                        "product": product,
+                        "size": size,
+                    }
+                )
 
     # Incentivize customers to meet free shipping threshold
     if total < settings.FREE_DELIVERY_THRESHOLD:
