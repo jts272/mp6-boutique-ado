@@ -1,5 +1,10 @@
-from django.shortcuts import redirect, render, HttpResponse
+# Messaging framework for toasts
+from django.contrib import messages
+from django.shortcuts import HttpResponse, redirect, render
 from django.urls import reverse
+
+# Show which item was added to bag from the model
+from products.models import Product
 
 
 # Create your views here.
@@ -12,6 +17,9 @@ def add_to_bag(request, item_id):
     """This view takes in the `item_id` of the item that the customer
     wishes to add to their bag, as well as the quantities therof.
     """
+
+    # Get product for use in toast
+    product = Product.objects.get("pk=item_id")
 
     # Get `quantity` input from the form and cast as int
     quantity = int(request.POST.get("quantity"))
@@ -48,6 +56,9 @@ def add_to_bag(request, item_id):
             bag[item_id] += quantity
         else:
             bag[item_id] = quantity
+
+        # Add success message to the request object (TOAST)
+        messages.success(request, f"Added {product.name} to your bag")
 
     # Put the `bag` var into the session
     request.session["bag"] = bag

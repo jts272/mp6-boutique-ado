@@ -162,7 +162,15 @@
         </div>
       </div>
     </header>
-    {% if messages %}<div class="message-container"></div>{% endif %}
+    {% if messages %}
+      <div class="message-container">
+        {% for message in messages %}
+
+          {% include "includes/toasts/toast_success.html" %}
+
+        {% endfor %}
+      </div>
+    {% endif %}
 
     {% block page_header %}
     {% endblock page_header %}
@@ -171,6 +179,11 @@
     {% endblock content %}
 
     {% block post_load_js %}
+      <script>
+        // Init toasts
+        // block.super in other templates ensures this script is not overwritten
+        $('.toast').toast("show");
+      </script>
     {% endblock post_load_js %}
 
   </body>
