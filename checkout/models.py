@@ -38,6 +38,46 @@ class Order(models.Model):
         max_digits=10, decimal_places=2, null=False, default=0
     )
 
+    # Private syntax - only used within this class
+    def _generate_order_number(self):
+        """Generate random, unique, 32 char order number."""
+        return uuid.uuid4.hex.upper()
+
+    def update_total(self):
+        """
+        Update grand total each time a line item is added,
+        accounting for delivery costs.
+
+        https://docs.djangoproject.com/en/3.2/topics/db/aggregation/#cheat-sheet
+
+        Default behaviour of aggregate is by using the sum function across
+        all `lineitem_total` (FK from `OrderLineItem`) fields together,
+        which by default will create a field called `lineitem_total__sum`,
+        which is the got and set.
+        """
+        self.order_total = self.lineitems.aggregate(Sum("lineitem_total"))[
+            "lineitem_total__sum"
+        ]
+        if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
+            self.delivery_cost = (
+                self.order_total * settings.STANDARD_DELIVERY_PERCENTAGE / 100
+            )
+        else:
+            self.delivery_cost = 0
+        self.grand_total = self.order_total + self.delivery_cost
+        self.save()
+
+    # Default save method override
+    def save(self, *args, **kwargs):
+        """Override default save method to add uuid if not present."""
+        if not self.order_number:
+            self.order_number = self._generate_order_number()
+        # Execute original save method
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.order_number
+
 
 class OrderLineItem(models.Model):
     """An individual shopping bag item, relating to a specific order, which
@@ -71,3 +111,15 @@ class OrderLineItem(models.Model):
     lineitem_total = models.DecimalField(
         max_digits=6, decimal_places=2, null=False, blank=False, editable=False
     )
+
+    # Default save method override
+    def save(self, *args, **kwargs):
+        """Override default save method to set lineitem_total and update
+        the order total."""
+        # Simply multiply the lineitem price by the quantity
+        self.lineitem_total = self.product.price * self.quantity
+        # Execute original save method
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"SKU {self.product.sku} on order {self.order.order_number}"
