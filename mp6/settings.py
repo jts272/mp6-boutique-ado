@@ -82,6 +82,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Give access to `MEDIA_URL` template tag for instances of no image
+                "django.template.context_processors.media",
                 # Custom context processor for shopping bag
                 "bag.contexts.bag_contents",
             ],
