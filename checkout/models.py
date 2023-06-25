@@ -41,7 +41,7 @@ class Order(models.Model):
     # Private syntax - only used within this class
     def _generate_order_number(self):
         """Generate random, unique, 32 char order number."""
-        return uuid.uuid4.hex.upper()
+        return uuid.uuid4().hex.upper()
 
     def update_total(self):
         """
@@ -55,9 +55,14 @@ class Order(models.Model):
         which by default will create a field called `lineitem_total__sum`,
         which is the got and set.
         """
-        self.order_total = self.lineitems.aggregate(Sum("lineitem_total"))[
-            "lineitem_total__sum"
-        ]
+        # Prevent error by giving 'or 0' for when all line items are removed
+        # manually by setting order total to 0 and not None
+        self.order_total = (
+            self.lineitems.aggregate(Sum("lineitem_total"))[
+                "lineitem_total__sum"
+            ]
+            or 0
+        )
         if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
             self.delivery_cost = (
                 self.order_total * settings.STANDARD_DELIVERY_PERCENTAGE / 100
