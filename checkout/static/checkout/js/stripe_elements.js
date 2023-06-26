@@ -59,6 +59,9 @@ form.addEventListener("submit", function (ev) {
   // Prevent multiple card submissions
   card.update({ disabled: true });
   $("#submit-button").attr("disabled", true);
+  // Engage loading spinner overlay
+  $("#payment-form").fadeToggle(100);
+  $("#loading-overlay").fadeToggle(100);
   // Call confirm card payment method
   stripe
     .confirmCardPayment(clientSecret, {
@@ -78,6 +81,9 @@ form.addEventListener("submit", function (ev) {
                 </span>
                 <span>${result.error.message}</span>`;
         $(errorDiv).html(html);
+        // Revert overlay toggle
+        $("#payment-form").fadeToggle(100);
+        $("#loading-overlay").fadeToggle(100);
         // Re-enable card element to allow user to fix the issue
         card.update({ disabled: false });
         $("#submit-button").attr("disabled", false);
