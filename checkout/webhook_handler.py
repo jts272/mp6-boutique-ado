@@ -22,5 +22,17 @@ class StripeWebHookHandler:
             HTTP response indicating Stripe event was received.
         """
         return HttpResponse(
+            content=f"Unhandled webhook received: {event['type']}", status=200
+        )
+
+    # SPECIFIC EVENT HANDLING METHODS
+    def handle_payment_intent_success(self, event):
+        return HttpResponse(
             content=f"Webhook received: {event['type']}", status=200
+        )
+
+    def handle_payment_intent_fail(self, event):
+        return HttpResponse(
+            content=f"PAYMENT FAILED Webhook received: {event['type']}",
+            status=200,
         )
