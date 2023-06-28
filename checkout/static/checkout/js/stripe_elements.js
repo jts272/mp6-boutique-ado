@@ -62,36 +62,90 @@ form.addEventListener("submit", function (ev) {
   // Engage loading spinner overlay
   $("#payment-form").fadeToggle(100);
   $("#loading-overlay").fadeToggle(100);
-  // Call confirm card payment method
-  stripe
-    .confirmCardPayment(clientSecret, {
-      payment_method: {
-        // Give Stripe the card
-        card: card,
-      },
+
+  // For save info checkbox
+  const saveInfo = Boolean($("#id-save-info").attr("checked"));
+
+  // Get csrf token that Django creates
+  const csrfToken = $("input[name='csrfmiddlewaretoken").val();
+  // Obj to pass to the cache view
+  const postData = {
+    csrfmiddlewaretoken: csrfToken,
+    // Pass client secret for payment intent
+    client_secret: clientSecret,
+    save_info: saveInfo,
+  };
+  const url = "/checkout/cache_checkout_data/";
+
+  // Post with jQuery
+  // callbackfn `.done()` to wait for payment intent updated before calling
+  // confirm card payment function. done = 'do on status 200'
+  // https://youtu.be/dewcliXUY8Y?t=123
+  $.post(url, postData)
+    .done(function () {
+      // Call confirm card payment method
+      stripe
+        .confirmCardPayment(clientSecret, {
+          payment_method: {
+            // Give Stripe the card
+            card: card,
+            // Form data to go into payment intent obj
+            // See Stripe docs for structure of payment intent object
+            billing_details: {
+              name: $.trim(form.full_name.value),
+              phone: $.trim(form.phone_number.value),
+              email: $.trim(form.email.value),
+              address: {
+                line1: $.trim(form.street_address1.value),
+                line2: $.trim(form.street_address2.value),
+                city: $.trim(form.town_or_city.value),
+                country: $.trim(form.country.value),
+                state: $.trim(form.county.value),
+              },
+            },
+          },
+          // For instances of different billing and shipping addresses
+          shipping: {
+            name: $.trim(form.full_name.value),
+            phone: $.trim(form.phone_number.value),
+            address: {
+              line1: $.trim(form.street_address1.value),
+              line2: $.trim(form.street_address2.value),
+              city: $.trim(form.town_or_city.value),
+              country: $.trim(form.country.value),
+              postal_code: $.trim(form.postcode.value),
+              state: $.trim(form.county.value),
+            },
+          },
+        })
+        // Execute this function on the result
+        .then(function (result) {
+          // Handle errors first if applicable
+          if (result.error) {
+            var errorDiv = document.getElementById("card-errors");
+            var html = `
+              <span class="icon" role="alert">
+              <i class="fas fa-times"></i>
+              </span>
+              <span>${result.error.message}</span>`;
+            $(errorDiv).html(html);
+            // Revert overlay toggle
+            $("#payment-form").fadeToggle(100);
+            $("#loading-overlay").fadeToggle(100);
+            // Re-enable card element to allow user to fix the issue
+            card.update({ disabled: false });
+            $("#submit-button").attr("disabled", false);
+          } else {
+            // Submit the form if payment succeed
+            if (result.paymentIntent.status === "succeeded") {
+              form.submit();
+            }
+          }
+        });
+      // Failure function if view triggers 400 response
     })
-    // Execute this function on the result
-    .then(function (result) {
-      // Handle errors first if applicable
-      if (result.error) {
-        var errorDiv = document.getElementById("card-errors");
-        var html = `
-                <span class="icon" role="alert">
-                <i class="fas fa-times"></i>
-                </span>
-                <span>${result.error.message}</span>`;
-        $(errorDiv).html(html);
-        // Revert overlay toggle
-        $("#payment-form").fadeToggle(100);
-        $("#loading-overlay").fadeToggle(100);
-        // Re-enable card element to allow user to fix the issue
-        card.update({ disabled: false });
-        $("#submit-button").attr("disabled", false);
-      } else {
-        // Submit the form if payment succeed
-        if (result.paymentIntent.status === "succeeded") {
-          form.submit();
-        }
-      }
+    .fail(function () {
+      // Reload the page; errors will be in Django messages
+      location.reload();
     });
 });

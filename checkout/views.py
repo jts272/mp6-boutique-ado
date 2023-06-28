@@ -1,8 +1,17 @@
+import json
+
 # import stripe from pip install
 import stripe
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import redirect, render, reverse, get_object_or_404
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+    reverse,
+    HttpResponse,
+)
+from django.views.decorators.http import require_POST
 
 # Custom context processor to allow calculating total for Stripe
 from bag.contexts import bag_contents
@@ -16,6 +25,49 @@ from .models import Order, OrderLineItem
 
 
 # Create your views here.
+@require_POST
+def cache_checkout_data(request):
+    """Handle checkbox to save payment data.
+
+    Before calling confirm card payment method in Stripe JS, a post
+    request is made to this view and is given the client secret from the
+    payment intent.
+
+    https://youtu.be/h0_abBkUPAw
+
+    Arguments:
+        request -- HTTP request object
+    """
+    # T/E block shows errors if applicable
+    # This view is designed to be posted by JS
+    try:
+        payment_intent_id = request.POST.get("client_secret").split("_secret")[
+            0
+        ]
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        # Modify the payment intent
+        stripe.PaymentIntent.modify(
+            payment_intent_id,
+            metadata={
+                # Contents of shopping bag
+                "bag": json.dumps(request.session.get("bag", {})),
+                # bool for whether to save info
+                "save_info": request.POST.get("save_info"),
+                # User placing the order
+                "username": request.user,
+            },
+        )
+        return HttpResponse(status=200)
+
+    except Exception as e:
+        messages.error(
+            request,
+            "Sorry, your payment cannot be processed right now. \
+            Please try again later.",
+        )
+        return HttpResponse(content=e, status=400)
+
+
 def checkout(request):
     # STRIPE VARS FROM SETTINGS
     stripe_public_key = settings.STRIPE_PUBLIC_KEY
