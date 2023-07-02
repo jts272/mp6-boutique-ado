@@ -46,6 +46,18 @@
   border: 1px solid black;
 }
 
+/* Country dropdown styling */
+
+select,
+select option {
+  color: #000000;
+}
+
+select:invalid,
+select option[value=""] {
+  color: #aab7c4 !important;
+}
+
 .fieldset-label {
   position: relative;
   right: 0.5rem;
