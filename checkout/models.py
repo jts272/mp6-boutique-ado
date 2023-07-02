@@ -11,6 +11,9 @@ from django_countries.fields import CountryField
 # For use as FK
 from products.models import Product
 
+# For FK from order to user profile
+from profiles.models import UserProfile
+
 
 # Create your models here.
 class Order(models.Model):
@@ -18,6 +21,17 @@ class Order(models.Model):
 
     # Unique and permanent (not editable) value so users can find previous orders
     order_number = models.CharField(max_length=32, null=False, editable=False)
+    # NEW - for linking an order to a user profile
+    # Set null to keep order history if user is deleted
+    # Null and blank so users without an account can order
+    # Related name usage example: `user.user_profile.orders`
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
     full_name = models.CharField(max_length=50, null=False, blank=False)
     email = models.EmailField(max_length=254, null=False, blank=False)
     phone_number = models.CharField(max_length=20, null=False, blank=False)
