@@ -92,7 +92,16 @@ def checkout(request):
         }
         order_form = OrderForm(form_data)
         if order_form.is_valid():
-            order = order_form.save()
+            # PREVENT FIRST SAVE AS SUBSEQUENT CHECKS ARE MADE BELOW
+            order = order_form.save(commit=False)
+
+            # PAYMENT INTENT ID FOR DUPLICATE BAG ORDER LOGIC
+            pid = request.POST.get("client_secret").split("_secret")[0]
+            order.stripe_pid = pid
+            # UPDATE MODEL FIELD FOR ORIGINAL BAG FOR THE ORDER
+            order.original_bag = json.dumps(bag)
+            order.save()
+
             # Iterate through bag items to create line items
             for item_id, item_data in bag.items():
                 try:

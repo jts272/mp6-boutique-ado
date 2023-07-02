@@ -138,6 +138,9 @@
             <div class="mb-3" id="card-element"></div>
             {% comment %} Form errors here {% endcomment %}
             <div class="mb-3 text-danger" id="card-errors" role="alert"></div>
+            <!-- CLIENT SECRET FOR DUPLICATE ORDER LOGIC -->
+            <!-- Pass to view to get payment intent id -->
+            <input type="hidden" name="client_secret" value="{{ client_secret }}" />
           </fieldset>
           <div class="submit-button text-right mt-5 mb-2">
             {% comment %} User can go back to adjust order {% endcomment %}

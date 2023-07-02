@@ -37,6 +37,13 @@ class Order(models.Model):
     grand_total = models.DecimalField(
         max_digits=10, decimal_places=2, null=False, default=0
     )
+    # DEFENSE AGAINST DUPLICATE ORDERS
+    # The original shopping bag that made the order
+    original_bag = models.TextField(null=False, blank=False, default="")
+    # Stripe payment intent id (guaranteed unique)
+    stripe_pid = models.CharField(
+        max_length=254, null=False, blank=False, default=""
+    )
 
     # Private syntax - only used within this class
     def _generate_order_number(self):
