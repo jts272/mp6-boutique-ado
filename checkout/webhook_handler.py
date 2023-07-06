@@ -9,6 +9,11 @@ from profiles.models import UserProfile
 
 from .models import Order, OrderLineItem, Product
 
+# SEND CONFIRMATION EMAIL IMPORTS
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+
 
 class StripeWebHookHandler:
     """Handle Stripe webhooks."""
@@ -20,6 +25,24 @@ class StripeWebHookHandler:
             request -- enable access to any request attrs coming from Stripe
         """
         self.request = request
+
+    # PRIVATE METHOD (only used in this class)
+    def _send_confirmation_email(self, order):
+        """Send the user a confirmation email"""
+        cust_email = order.email
+        # Template and context provided for render_to_string method
+        subject = render_to_string(
+            "checkout/confirmation_emails/confirmation_email_subject.txt",
+            {"order": order},
+        )
+        body = render_to_string(
+            "checkout/confirmation_emails/confirmation_email_body.txt",
+            {"order": order, "contact_email": settings.DEFAULT_FROM_EMAIL},
+        )
+
+        # Method to actually send the email
+        # Subject, Body, From, To
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [cust_email])
 
     def handle_event(self, event):
         """Handle generic, unknown or unexpected webhook events.
@@ -119,6 +142,8 @@ class StripeWebHookHandler:
                 time.sleep(1)
 
         if order_exists:
+            # SEND CONFIRMATION EMAIL HERE BEFORE RETURNING RESPONSE TO STRIPE
+            self._send_confirmation_email(order)
             return HttpResponse(
                 content=f"Webhook received: {event['type']} | SUCCESS: Verified order already in database",
                 status=200,
@@ -185,6 +210,10 @@ class StripeWebHookHandler:
                 )
 
         print(intent)
+
+        # SEND CONFIRMATION EMAIL IF ORDER CREATED BY WEBHOOK HANDLER
+        self._send_confirmation_email(order)
+
         # ORDER MUST HAVE BEEN CREATED AT THIS POINT - SHOW SUCCESS
         return HttpResponse(
             content=f"Webhook received: {event['type']} | SUCCESS: Created order in webhook",
