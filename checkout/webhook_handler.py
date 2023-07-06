@@ -4,6 +4,9 @@ import time
 import stripe
 from django.http import HttpResponse
 
+# Handle checkbox profile save
+from profiles.models import UserProfile
+
 from .models import Order, OrderLineItem, Product
 
 
@@ -57,6 +60,28 @@ class StripeWebHookHandler:
             if value == "":
                 shipping_details.address[field] = None
 
+        # Update profile information if save_info was checked
+        # ALLOW ANONYMOUS USERS TO CHECK OUT
+        profile = None
+        username = intent.metadata.username
+        if username != "AnonymousUser":
+            # They must be authenticated
+            profile = UserProfile.objects.get(user__username=username)
+            # If checkbox clicked
+            if save_info:
+                profile.default_phone_number = shipping_details.phone
+                profile.default_country = shipping_details.address.country
+                profile.default_postcode = shipping_details.address.postal_code
+                profile.default_town_or_city = shipping_details.address.city
+                profile.default_street_address1 = (
+                    shipping_details.address.line1
+                )
+                profile.default_street_address2 = (
+                    shipping_details.address.line2
+                )
+                profile.default_county = shipping_details.address.state
+                profile.save()
+
         # For proper form submission when the user checks out, the form
         # should already be in the db
         # Presence check and return an ok response if it is there
@@ -105,6 +130,10 @@ class StripeWebHookHandler:
                 # Create if it does not exist, using code from checkout view
                 order = Order.objects.create(
                     full_name=shipping_details.name,
+                    # WE GOT THE PROFILE ALREADY ABOVE
+                    # LET WH CREATE ORDERS FOR AUTH AND ANON USERS
+                    # e.g. PROFILE DATA OR 'NONE'
+                    user_profile=profile,
                     email=shipping_details.email,
                     phone_number=shipping_details.phone,
                     country=shipping_details.country,
