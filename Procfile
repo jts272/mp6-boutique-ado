@@ -1,0 +1,1 @@
+web: gunicorn mp6.wsgi:application

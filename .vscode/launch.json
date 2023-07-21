@@ -48,6 +48,15 @@
       "args": ["migrate"],
       "django": true,
       "justMyCode": true
+    },
+    {
+      "name": "Django: showmigrations",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["showmigrations"],
+      "django": true,
+      "justMyCode": true
     }
   ]
 }
