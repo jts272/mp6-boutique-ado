@@ -216,6 +216,12 @@ if "USE_AWS" in os.environ:
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/"
 
+    # Cache control
+    AWS_S3_OBJECT_PARAMETERS = {
+        "Expires": "Thu, 31 Dec 2099 20:00:00 GMT",
+        "CacheControl": "max-age=94608000",
+    }
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
